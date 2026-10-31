@@ -1,5 +1,7 @@
 // Thin API client for the FastAPI backend. The JWT is kept in localStorage.
 const TOKEN_KEY = "cg_token";
+// Empty in local dev (Vite proxies /api). Set VITE_API_URL when the backend is hosted elsewhere.
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
 export const auth = {
   get token() {
@@ -20,7 +22,7 @@ async function request(path, { method = "GET", body, form, raw } = {}) {
   let payload;
   if (form) payload = form;
   else if (body !== undefined) { headers["Content-Type"] = "application/json"; payload = JSON.stringify(body); }
-  const res = await fetch(path, { method, headers, body: payload });
+  const res = await fetch(API_BASE + path, { method, headers, body: payload });
   if (res.status === 401 && !path.startsWith("/api/auth/")) {
     auth.set(null);
     window.location.assign("/login");
@@ -51,7 +53,7 @@ export const api = {
     form.append("name", name);
     form.append("file", file);
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/projects/upload");
+    xhr.open("POST", API_BASE + "/api/projects/upload");
     if (auth.token) xhr.setRequestHeader("Authorization", `Bearer ${auth.token}`);
     xhr.upload.onprogress = (e) => { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
     xhr.onload = () => {
