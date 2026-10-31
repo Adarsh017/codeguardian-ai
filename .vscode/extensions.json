@@ -1,0 +1,8 @@
+{
+  // VS Code shows "Install recommended extensions" when you open this folder.
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.debugpy",
+    "ms-python.vscode-pylance"
+  ]
+}

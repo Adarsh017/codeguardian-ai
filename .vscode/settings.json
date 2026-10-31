@@ -1,0 +1,23 @@
+{
+  // The Python virtual environment lives in .venv at the project root (created by the "Setup" task);
+  // VS Code detects it automatically — pick it if asked to select an interpreter.
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.extraPaths": ["${workspaceFolder}/backend"],
+
+  // Testing panel (beaker icon) runs the backend test suite with pytest.
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.cwd": "${workspaceFolder}/backend",
+  "python.testing.pytestArgs": ["tests"],
+
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    ".venv": true,
+    "backend/storage": true
+  }
+}

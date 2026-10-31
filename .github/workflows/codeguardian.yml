@@ -1,0 +1,75 @@
+# CodeGuardian AI - automated secure code review on every push and pull request.
+# Copy this file (and the backend/ folder, or install it from your repo) into the project you want to scan.
+name: CodeGuardian AI Scan
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write   # upload SARIF to the GitHub Security tab
+  pull-requests: write     # comment results on PRs
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CodeGuardian AI
+        run: pip install -r backend/requirements.txt
+
+      - name: Run multi-agent scan (quality gate)
+        id: scan
+        working-directory: backend
+        env:
+          # Optional: enable the AI Reviewer / Remediation agents with repository secrets
+          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER || 'none' }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL || 'https://api.openai.com/v1' }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL || 'gpt-4o-mini' }}
+        # Scans the repository root; change the path or --fail-on to match your policy.
+        run: |
+          python -m app.cli scan "$GITHUB_WORKSPACE" \
+            --fail-on critical \
+            --format sarif,json,pdf \
+            --output "$GITHUB_WORKSPACE/codeguardian-reports" \
+            --project-name "${{ github.repository }}" \
+            --quiet
+
+      - name: Upload SARIF to GitHub code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: codeguardian-reports/codeguardian-report.sarif
+        continue-on-error: true
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeguardian-reports
+          path: codeguardian-reports/
+
+      - name: Comment on pull request
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'codeguardian-reports/codeguardian-report.json';
+            if (!fs.existsSync(path)) return;
+            const r = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const c = r.severity_counts;
+            const top = r.findings.slice(0, 10).map(f => `| ${f.severity} | \`${f.file}:${f.line}\` | ${f.title.replace(/\|/g, '/')} |`).join('\n');
+            const body = `## 🛡️ CodeGuardian AI\n\n**Quality gate:** ${r.gate.passed ? '✅ PASSED' : '❌ FAILED'}  \n` +
+              `**Security:** ${Math.round(r.scores.security_score)}/100 · **Quality:** ${Math.round(r.scores.quality_score)}/100  \n` +
+              `Critical ${c.Critical} · High ${c.High} · Medium ${c.Medium} · Low ${c.Low}\n\n` +
+              `| Severity | Location | Issue |\n|---|---|---|\n${top}\n\n<sub>Full PDF/JSON report in the workflow artifacts.</sub>`;
+            await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body });

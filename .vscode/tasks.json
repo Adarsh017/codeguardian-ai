@@ -1,0 +1,60 @@
+{
+  // Terminal > Run Task...  Run "Setup (run once)" first.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Setup (run once)",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Create Python environment", "Install backend packages", "Install frontend packages", "Build dashboard"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Create Python environment",
+      "type": "shell",
+      "command": "python3 -m venv .venv",
+      "windows": { "command": "python -m venv .venv" },
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install backend packages",
+      "type": "shell",
+      "command": ".venv/bin/python -m pip install -r backend/requirements.txt",
+      "windows": { "command": ".venv\\Scripts\\python.exe -m pip install -r backend\\requirements.txt" },
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install frontend packages",
+      "type": "shell",
+      "command": "npm install",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build dashboard",
+      "type": "shell",
+      "command": "npm run build",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run tests",
+      "type": "shell",
+      "command": "../.venv/bin/python -m pytest -q",
+      "windows": { "command": "..\\.venv\\Scripts\\python.exe -m pytest -q" },
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Scan sample app (CLI)",
+      "type": "shell",
+      "command": "../.venv/bin/python -m app.cli scan ../samples/vulnerable-app -v --format pdf,json --output ../codeguardian-reports",
+      "windows": { "command": "..\\.venv\\Scripts\\python.exe -m app.cli scan ..\\samples\\vulnerable-app -v --format pdf,json --output ..\\codeguardian-reports" },
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    }
+  ]
+}

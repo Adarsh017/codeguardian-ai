@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+backend/storage/
+backend/*.db
+frontend/node_modules/
+frontend/dist/
+codeguardian-reports/
+.pytest_cache/

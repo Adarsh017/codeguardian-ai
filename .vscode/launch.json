@@ -1,0 +1,58 @@
+{
+  // Run and Debug panel (Ctrl+Shift+D / Cmd+Shift+D). Run the "Setup (run once)" task first.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "CodeGuardian AI (backend + dashboard)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["app.main:app", "--port", "8000"],
+      "cwd": "${workspaceFolder}/backend",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "windows": { "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe" },
+      "justMyCode": true,
+      "serverReadyAction": { "pattern": "Uvicorn running on (https?://\\S+)", "uriFormat": "%s", "action": "openExternally" }
+    },
+    {
+      "name": "Dashboard dev server (hot reload)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/frontend",
+      "serverReadyAction": { "pattern": "Local:\\s+(https?://\\S+)", "uriFormat": "%s", "action": "openExternally" }
+    },
+    {
+      "name": "CLI: scan the sample app",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "app.cli",
+      "args": ["scan", "../samples/vulnerable-app", "-v", "--format", "pdf,json", "--output", "../codeguardian-reports"],
+      "cwd": "${workspaceFolder}/backend",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "windows": { "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe" },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "CLI: scan a folder…",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "app.cli",
+      "args": ["scan", "${input:scanPath}", "-v"],
+      "cwd": "${workspaceFolder}/backend",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "windows": { "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe" },
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full stack with hot reload",
+      "configurations": ["CodeGuardian AI (backend + dashboard)", "Dashboard dev server (hot reload)"],
+      "stopAll": true
+    }
+  ],
+  "inputs": [
+    { "id": "scanPath", "type": "promptString", "description": "Folder to scan (absolute path)" }
+  ]
+}

@@ -1,0 +1,7 @@
+database:
+  host: db.internal
+  user: admin
+  password: Pr0dPassw0rd!
+  url: postgres://admin:Pr0dPassw0rd!@db.internal:5432/shop
+smtp:
+  password: ${SMTP_PASSWORD}

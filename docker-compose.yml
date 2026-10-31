@@ -1,0 +1,39 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+psycopg2://codeguardian:codeguardian@db:5432/codeguardian
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_DIR: /app/backend/storage
+    volumes:
+      - storage:/app/backend/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: codeguardian
+      POSTGRES_PASSWORD: codeguardian
+      POSTGRES_DB: codeguardian
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codeguardian"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+
+volumes:
+  storage:
+  pgdata:
